@@ -42,6 +42,7 @@ import femr.util.dependencyinjection.providers.MissionCityProvider;
 import femr.util.stringhelpers.CSVWriterGson;
 import femr.util.stringhelpers.GsonFlattener;
 import femr.util.stringhelpers.StringUtils;
+import femr.util.DataStructure.Pair;
 import femr.business.services.system.MissionTripService.*;
 
 import java.io.File;
@@ -851,86 +852,9 @@ public class ResearchService implements IResearchService {
             resultItem.setPrimaryValue(currentValue + 1);
 
             // get secondary data
-            if (filters.getSecondaryDataset() != null) {
-                if (filters.getSecondaryDataset().equals("gender")) {
-
-                    // Set valuemap if not already
-                    if (resultSet.getSecondaryValueMap() == null) {
-
-                        Map<Float, String> secondaryResultMap = new HashMap<>();
-                        secondaryResultMap.put(0.0f, "Male");
-                        secondaryResultMap.put(1.0f, "Female");
-                        secondaryResultMap.put(2.0f, "N/A");
-
-                        resultSet.setSecondaryValueMap(secondaryResultMap);
-                    }
-
-                    String gender = "2.0";
-                    if (patient.getSex() == null) {
-                        gender = "2.0";
-                    } else if (patient.getSex().matches("(?i:Male)")) {
-                        gender = "0.0";
-                    } else if (patient.getSex().matches("(?i:Female)")) {
-                        gender = "1.0";
-                    }
-
-                    Map<String, Float> secondaryData = resultItem.getSecondaryData();
-                    // Initialize secondary data
-                    if (secondaryData == null) {
-
-                        secondaryData = new HashMap<String, Float>();
-
-                        // Make sure all keys exist
-                        secondaryData.put("0.0", 0.0f);
-                        secondaryData.put("1.0", 0.0f);
-                        secondaryData.put("2.0", 0.0f);
-                    }
-
-                    // Add patient to secondary running total
-                    // key will exist after initialization above
-                    Float secTotal = secondaryData.get(gender);
-                    secondaryData.put(gender, secTotal + 1.0f);
-
-                    resultItem.setSecondaryData(secondaryData);
-
-                } else if (filters.getSecondaryDataset().equals("pregnancyStatus")) {
-
-                    // Set valuemap if not already
-                    if (resultSet.getSecondaryValueMap() == null) {
-
-                        Map<Float, String> secondaryResultMap = new HashMap<>();
-                        secondaryResultMap.put(0.0f, "No");
-                        secondaryResultMap.put(1.0f, "Yes");
-
-                        resultSet.setSecondaryValueMap(secondaryResultMap);
-                    }
-
-                    Integer weeksPregnant = getWeeksPregnant( encounter );
-                    String pregnancyStatus = "0.0";
-                    if( weeksPregnant >  0 ){
-                        pregnancyStatus = "1.0";
-                    }
-
-                    Map<String, Float> secondaryData = resultItem.getSecondaryData();
-                    // Initialize secondary data
-                    if (secondaryData == null) {
-
-                        secondaryData = new HashMap<String, Float>();
-
-                        // Make sure all keys exist
-                        secondaryData.put("0.0", 0.0f);
-                        secondaryData.put("1.0", 0.0f);
-                    }
-
-                    // Add patient to secondary running total
-                    // key will exist after initialization above
-                    Float secTotal = secondaryData.get(pregnancyStatus);
-
-                    secondaryData.put( pregnancyStatus, secTotal + 1.0f);
-
-                    resultItem.setSecondaryData(secondaryData);
-                }
-            }
+            Pair<ResearchResultSetItem, ResearchResultItem> pair = getSecondaryPatientDataFromFilter(patient, encounter, filters, resultItem, resultSet);
+            resultSet = pair.getKey();
+            resultItem = pair.getValue();
 
             // put result item back into map
             datasetBuilder.put(vitalValue, resultItem);
@@ -1226,87 +1150,10 @@ public class ResearchService implements IResearchService {
 
             resultItem.setPrimaryValue(currentValue + 1);
 
-            // @TODO - get secondary data
-            if (filters.getSecondaryDataset() != null) {
-                if (filters.getSecondaryDataset().equals("gender")) {
-
-                    // Set valuemap if not already
-                    if (resultSet.getSecondaryValueMap() == null) {
-
-                        Map<Float, String> secondaryResultMap = new HashMap<>();
-                        secondaryResultMap.put(0.0f, "Male");
-                        secondaryResultMap.put(1.0f, "Female");
-                        secondaryResultMap.put(2.0f, "N/A");
-
-                        resultSet.setSecondaryValueMap(secondaryResultMap);
-                    }
-
-                    String gender = "2.0";
-                    if (patient.getSex() == null) {
-                        gender = "2.0";
-                    } else if (patient.getSex().matches("(?i:Male)")) {
-                        gender = "0.0";
-                    } else if (patient.getSex().matches("(?i:Female)")) {
-                        gender = "1.0";
-                    }
-
-                    Map<String, Float> secondaryData = resultItem.getSecondaryData();
-                    // Initialize secondary data
-                    if (secondaryData == null) {
-
-                        secondaryData = new HashMap<String, Float>();
-
-                        // Make sure all keys exist
-                        secondaryData.put("0.0", 0.0f);
-                        secondaryData.put("1.0", 0.0f);
-                        secondaryData.put("2.0", 0.0f);
-                    }
-
-                    // Add patient to secondary running total
-                    // key will exist after initialization above
-                    Float secTotal = secondaryData.get(gender);
-                    secondaryData.put(gender, secTotal + 1.0f);
-
-                    resultItem.setSecondaryData(secondaryData);
-
-                } else if (filters.getSecondaryDataset().equals("pregnancyStatus")) {
-
-                    // Set valuemap if not already
-                    if (resultSet.getSecondaryValueMap() == null) {
-
-                        Map<Float, String> secondaryResultMap = new HashMap<>();
-                        secondaryResultMap.put(0.0f, "No");
-                        secondaryResultMap.put(1.0f, "Yes");
-
-                        resultSet.setSecondaryValueMap(secondaryResultMap);
-                    }
-
-                    Integer wksPregnant = getWeeksPregnant( encounter );
-
-                    String pregnancyStatus = "0.0";
-                    if (wksPregnant > 0) {
-                        pregnancyStatus = "1.0";
-                    }
-
-                    Map<String, Float> secondaryData = resultItem.getSecondaryData();
-                    // Initialize secondary data
-                    if (secondaryData == null) {
-
-                        secondaryData = new HashMap<String, Float>();
-
-                        // Make sure all keys exist
-                        secondaryData.put("0.0", 0.0f);
-                        secondaryData.put("1.0", 0.0f);
-                    }
-
-                    // Add patient to secondary running total
-                    // key will exist after initialization above
-                    Float secTotal = secondaryData.get(pregnancyStatus);
-                    secondaryData.put(pregnancyStatus, secTotal + 1.0f);
-
-                    resultItem.setSecondaryData(secondaryData);
-                }
-            }
+            // get secondary data
+            Pair<ResearchResultSetItem, ResearchResultItem> pair = getSecondaryPatientDataFromFilter(patient, encounter, filters, resultItem, resultSet);
+            resultSet = pair.getKey();
+            resultItem = pair.getValue();
 
             // put result item back into map
             datasetBuilder.put(age, resultItem);
@@ -1324,6 +1171,86 @@ public class ResearchService implements IResearchService {
         resultSet.setAverage(average);
 
         return resultSet;
+    }
+
+    private Pair<ResearchResultSetItem, ResearchResultItem> getSecondaryPatientDataFromFilter(IPatient patient, IResearchEncounter encounter, ResearchFilterItem filters, ResearchResultItem resultItem, ResearchResultSetItem resultSet) {
+        if (filters.getSecondaryDataset() != null) {
+            if (filters.getSecondaryDataset().equals("gender")) {
+                    // Set valuemap if not already
+                if (resultSet.getSecondaryValueMap() == null) {
+                    Map<Float, String> secondaryResultMap = new HashMap<>();
+                    secondaryResultMap.put(0.0f, "Male");
+                    secondaryResultMap.put(1.0f, "Female");
+                    secondaryResultMap.put(2.0f, "N/A");
+                    resultSet.setSecondaryValueMap(secondaryResultMap);
+                }
+                String gender = "2.0";
+                if (patient.getSex() == null) {
+                    gender = "2.0";
+                } else if (patient.getSex().matches("(?i:Male)")) {
+                    gender = "0.0";
+                } else if (patient.getSex().matches("(?i:Female)")) {
+                    gender = "1.0";
+                }
+
+                Map<String, Float> secondaryData = resultItem.getSecondaryData();
+                // Initialize secondary data
+                if (secondaryData == null) {
+
+                    secondaryData = new HashMap<String, Float>();
+
+                    // Make sure all keys exist
+                    secondaryData.put("0.0", 0.0f);
+                    secondaryData.put("1.0", 0.0f);
+                    secondaryData.put("2.0", 0.0f);
+                }
+
+                // Add patient to secondary running total
+                // key will exist after initialization above
+                Float secTotal = secondaryData.get(gender);
+                secondaryData.put(gender, secTotal + 1.0f);
+
+                resultItem.setSecondaryData(secondaryData);
+
+            } else if (filters.getSecondaryDataset().equals("pregnancyStatus")) {
+
+                // Set valuemap if not already
+                if (resultSet.getSecondaryValueMap() == null) {
+
+                    Map<Float, String> secondaryResultMap = new HashMap<>();
+                    secondaryResultMap.put(0.0f, "No");
+                    secondaryResultMap.put(1.0f, "Yes");
+
+                    resultSet.setSecondaryValueMap(secondaryResultMap);
+                }
+
+                Integer wksPregnant = getWeeksPregnant( encounter );
+
+                String pregnancyStatus = "0.0";
+                if (wksPregnant > 0) {
+                    pregnancyStatus = "1.0";
+                }
+
+                Map<String, Float> secondaryData = resultItem.getSecondaryData();
+                // Initialize secondary data
+                if (secondaryData == null) {
+
+                    secondaryData = new HashMap<String, Float>();
+
+                    // Make sure all keys exist
+                    secondaryData.put("0.0", 0.0f);
+                    secondaryData.put("1.0", 0.0f);
+                }
+
+                // Add patient to secondary running total
+                // key will exist after initialization above
+                Float secTotal = secondaryData.get(pregnancyStatus);
+                secondaryData.put(pregnancyStatus, secTotal + 1.0f);
+
+                resultItem.setSecondaryData(secondaryData);
+            }
+        }
+        return new Pair<ResearchResultSetItem, ResearchResultItem>(resultSet, resultItem);
     }
 
     // do stuff specific to pregnancy requests
